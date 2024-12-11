@@ -1,3 +1,4 @@
+import numpy as np
 import json
 
 
@@ -43,11 +44,23 @@ def calculate_relations(graph):
         relations[3][idx] = sum(count_indirect_children(graph, graph[x]["children"]) for x in data["children"])
         relations[4][idx] = len(get_siblings(graph, node))
         
-    for row in relations:
-        print(row)
+    return relations
+
+def calculate_enthropy(matrix):
+    n = len(matrix[0])
+    total_entropy = 0
+    
+    for column in zip(*matrix):
+        column_entropy = sum(-elem/(n-1) * np.log2(elem/(n-1)) 
+                           for elem in column if elem != 0)
+        total_entropy += column_entropy
+        
+    return total_entropy
 
 def main(json_str):
-    calculate_relations(json_to_tree(json_str))
+    matrix = calculate_relations(json_to_tree(json_str))
+    enthropy = calculate_enthropy(matrix)
+    print(f"Энтропия: {enthropy:.3f}")
 
 
 test_string = '''{

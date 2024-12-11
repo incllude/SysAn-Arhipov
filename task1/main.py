@@ -1,38 +1,44 @@
-from pprint import pprint
 import json
 
 
-def tree_descendent(tree, output, parent):
+def make_node(parent, children):
+    return {"parent": parent, "children": children}
 
-    for node, childs in tree.items():
-        node = int(node)
-        output[node] = {"parent": parent, "children": tree_descendent(childs, output, node)}
+def build_tree(parent, data, graph):
+    children = list(data.keys())
+    for key, value in data.items():
+        graph[key] = make_node(parent, build_tree(key, value, graph) if value else [])
+    return children
 
-    return list(map(int, tree.keys()))
+def json_to_tree(json_string):
+    graph = {}
+    build_tree(None, json.loads(json_string), graph)
+    return graph
 
+def print_tree(graph):
+    for node, data in graph.items():
+        siblings = [k for k, v in graph.items() if v["parent"] == data["parent"] and k != node]
+        print(f"Вершина: {node}")
+        print(f"    Сиблинги: {siblings}")
+        print(f"    Дети:     {data['children']}")
 
-def convert_json(tree):
-
-    output = {}
-    tree_descendent(tree, output, None)
-    return output
-
-
-def pprint_metadata(tree):
-
-    for node, info in tree.items():
-        print(f"Вершина: {node}; Родитель: {info['parent']}; Дети: {info['children']}; Сиблинги: {list(filter(lambda x: tree[x]['parent'] == info['parent'] and x != node, tree))}")
-
-
-def main(json_string):
-
-    tree = json.loads(json_string)
-    metadata = convert_json(tree)
-    pprint_metadata(metadata)
+def main(json_str):
+    print_tree(json_to_tree(json_str))
 
 
-# with open("tree.json", "r") as file:
-#     tree = json.load(file)
-
-# metadata = convert_json(tree)
-# pprint_metadata(metadata)
+test_string = '''{
+    "1": {
+        "2": {
+            "3": {
+                "5": {},
+                "6": {}
+            },
+            "4": {
+                "7": {},
+                "8": {}
+            }
+        }
+    }
+}
+'''
+main(test_string)
